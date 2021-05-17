@@ -29,7 +29,7 @@ func ICPQuery(url string) (*Icp, error) {
 	}
 	request.Header.Add("user-agent", RandomUserAgent())
 
-	resp, err := client.Get(url)
+	resp, err := client.Do(request)
 	if err != nil {
 		return icp, err
 	}
