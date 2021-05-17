@@ -1,4 +1,4 @@
-module icpquery
+module github.com/aveyuan/icpquery
 
 go 1.16
 
