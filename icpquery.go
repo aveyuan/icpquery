@@ -1,7 +1,9 @@
 package icpquery
 
 import (
+	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -62,6 +64,48 @@ func ICPQuery(url string) (*Icp, error) {
 		return icp, fmt.Errorf("没有查询到备案信息")
 	}
 	return icp, nil
+}
+
+func ICPQueryAizhan(url string) (*Icp, error) {
+	url = "https://icp.aizhan.com/geticp/?host=" + url
+	icp := new(Icp)
+	client := &http.Client{Timeout: 5 * time.Second}
+
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return icp, err
+	}
+	request.Header.Add("user-agent", RandomUserAgent())
+
+	resp, err := client.Do(request)
+	if err != nil {
+		return icp, err
+	}
+	defer resp.Body.Close()
+	all, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return icp, fmt.Errorf("没有查询到备案信息")
+	}
+
+	reg, err := regexp.Compile(`document\.write\('(.*?)'\);`)
+	if err != nil {
+		return icp, fmt.Errorf("没有查询到备案信息")
+	}
+
+	result := reg.FindAllStringSubmatch(string(all), -1)
+	//过滤<></>
+	for _, text := range result {
+		if len(text) >= 2 {
+			if text[1] == "未找到备案信息" {
+				return icp, fmt.Errorf("没有查询到备案信息")
+			} else {
+				icp.IcpNumber = text[1]
+				return icp, nil
+			}
+		}
+	}
+
+	return icp, fmt.Errorf("没有查询到备案信息")
 }
 
 var uaGens = []func() string{

@@ -11,4 +11,10 @@ func TestWebquery(t *testing.T) {
 		t.Fatal(err)
 	}
 	log.Print(icp)
+
+	icp2, err := ICPQueryAizhan("qq.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Print(icp2)
 }
